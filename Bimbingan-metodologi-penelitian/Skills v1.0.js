@@ -867,4 +867,479 @@ function generateSupervisorRecommendations(findings) {
 
   if (hasCritical) {
     recommendations.push(
-      "Prioritaskan penyelesaian masalah substansial atau metodol
+      "Prioritaskan penyelesaian masalah substansial atau metodologis sebelum melakukan penyempurnaan bahasa."
+    );
+  }
+
+  if (hasImportant) {
+    recommendations.push(
+      "Siapkan penjelasan akademik dan bukti pendukung untuk bagian yang masih dipertanyakan."
+    );
+  }
+
+  recommendations.push(
+    "Jangan mengubah data atau hasil penelitian hanya untuk menyesuaikannya dengan teori atau ekspektasi."
+  );
+
+  recommendations.push(
+    "Verifikasi bagian yang ditandai 'Perlu Verifikasi' sebelum mengambil keputusan revisi."
+  );
+
+  recommendations.push(
+    "Gunakan pedoman resmi institusi sebagai acuan akhir untuk format skripsi."
+  );
+
+  return recommendations;
+}
+
+
+/* =========================================================
+   21. AUDIT UTAMA
+   ========================================================= */
+
+function auditSkripsi(input) {
+  const validation = validateInput(input);
+
+  if (!validation.valid) {
+    return {
+      success: false,
+      errors: validation.errors
+    };
+  }
+
+  const document = input.document;
+
+  const findings = [];
+
+  /*
+   * PHASE 1
+   * AUDIT
+   *
+   * Pada tahap ini sistem hanya mengidentifikasi,
+   * mengklasifikasikan, dan menjelaskan masalah.
+   *
+   * Sistem tidak melakukan rewrite otomatis.
+   */
+
+  findings.push(...checkTitle(document));
+
+  findings.push(...checkResearchQuestions(document));
+
+  findings.push(...checkLogicChain(document));
+
+  findings.push(...checkMethodology(document));
+
+  findings.push(...checkResults(document));
+
+  findings.push(...checkDiscussion(document));
+
+  findings.push(...checkConclusion(document));
+
+  findings.push(...checkReferences(document));
+
+  findings.push(...checkAcademicLanguage(document));
+
+  findings.push(...checkPlagiarism(document));
+
+  findings.push(...checkFormat(document));
+
+  findings.push(...checkConsistency(document));
+
+  const completeness = calculateCompleteness(document);
+
+  const sortedFindings = sortFindingsByPriority(findings);
+
+  const readiness = assessReadiness(
+    sortedFindings,
+    completeness
+  );
+
+  const summary = generateSummary(
+    sortedFindings,
+    readiness,
+    completeness
+  );
+
+  return {
+    success: true,
+
+    mode: SKILL_CONFIG.mode,
+
+    phase: "AUDIT",
+
+    principles: SKILL_CONFIG.prinsip,
+
+    findings: sortedFindings,
+
+    summary
+  };
+}
+
+
+/* =========================================================
+   22. PHASE 2 — RENCANA REVISI
+   ========================================================= */
+
+function createRevisionPlan(auditResult) {
+  if (!auditResult || !auditResult.success) {
+    throw new Error(
+      "Hasil audit diperlukan sebelum membuat rencana revisi."
+    );
+  }
+
+  const findings = auditResult.findings;
+
+  /*
+   * PHASE 2
+   *
+   * Revision Planning dilakukan SETELAH audit.
+   * Sistem tidak boleh diam-diam mengubah metodologi,
+   * data, atau makna penelitian.
+   */
+
+  return findings.map((finding, index) => ({
+    nomor: index + 1,
+    lokasi: finding.lokasi,
+    kategori: finding.kategori,
+    prioritas: finding.tingkatPrioritas,
+    masalah: finding.temuan,
+    tindakan: finding.perbaikan,
+    status: "Belum direvisi"
+  }));
+}
+
+
+/* =========================================================
+   23. FORMAT OUTPUT
+   ========================================================= */
+
+function formatAuditReport(auditResult) {
+  if (!auditResult.success) {
+    return auditResult;
+  }
+
+  const { summary, findings } = auditResult;
+
+  return {
+    judul: "Laporan Audit Skripsi",
+
+    mode: auditResult.mode,
+
+    ringkasan:
+      "Pemeriksaan dilakukan berdasarkan informasi yang tersedia. Temuan yang tidak dapat diverifikasi tidak boleh dianggap sebagai fakta.",
+
+    kesiapanSkripsi: summary.kesiapan,
+
+    kelengkapanDokumen: summary.kelengkapanDokumen,
+
+    kelemahanUtama: summary.kelemahanUtama,
+
+    revisiWajib: summary.revisiWajib,
+
+    revisiDisarankan: summary.revisiDisarankan,
+
+    dataYangMasihDiperlukan:
+      summary.dataYangMasihDiperlukan,
+
+    risiko: summary.risiko,
+
+    rekomendasiSebelumBimbingan:
+      summary.rekomendasiSebelumBimbingan,
+
+    seluruhTemuan: findings
+  };
+}
+
+
+/* =========================================================
+   24. PIPELINE UTAMA
+   ========================================================= */
+
+function runPembimbingSkripsi(input) {
+  /*
+   * ALUR PROGRAM
+   *
+   * INPUT
+   *   ↓
+   * Validasi dokumen
+   *   ↓
+   * Pemeriksaan kelengkapan
+   *   ↓
+   * Audit substansi
+   *   ↓
+   * Audit metodologi
+   *   ↓
+   * Audit data
+   *   ↓
+   * Audit pembahasan
+   *   ↓
+   * Audit kesimpulan
+   *   ↓
+   * Audit sitasi & referensi
+   *   ↓
+   * Audit bahasa
+   *   ↓
+   * Audit format
+   *   ↓
+   * Audit konsistensi
+   *   ↓
+   * Klasifikasi temuan
+   *   ↓
+   * Prioritas masalah
+   *   ↓
+   * Penilaian kesiapan
+   *   ↓
+   * Laporan audit
+   *   ↓
+   * Rencana revisi
+   */
+
+  const audit = auditSkripsi(input);
+
+  if (!audit.success) {
+    return audit;
+  }
+
+  const report = formatAuditReport(audit);
+
+  const revisionPlan = createRevisionPlan(audit);
+
+  return {
+    ...report,
+
+    revisionPlan
+  };
+}
+
+
+/* =========================================================
+   25. CONTOH INPUT
+   ========================================================= */
+
+const contohSkripsi = {
+  document: {
+    "Judul":
+      "Pengaruh Penggunaan Teknologi Digital terhadap Produktivitas Mahasiswa",
+
+    "Latar belakang":
+      "Latar belakang penelitian...",
+
+    "Identifikasi masalah":
+      "Identifikasi masalah...",
+
+    "Batasan masalah":
+      "Batasan masalah...",
+
+    "Rumusan masalah":
+      "Apakah penggunaan teknologi digital berpengaruh terhadap produktivitas mahasiswa?",
+
+    "Tujuan penelitian":
+      "Menganalisis pengaruh penggunaan teknologi digital terhadap produktivitas mahasiswa.",
+
+    "Manfaat penelitian":
+      "Manfaat penelitian...",
+
+    "Kajian teori":
+      "Kajian teori...",
+
+    "Penelitian terdahulu":
+      "Penelitian terdahulu...",
+
+    "Research gap":
+      "Research gap...",
+
+    "Kerangka berpikir":
+      "Kerangka berpikir...",
+
+    "Hipotesis":
+      "Terdapat pengaruh penggunaan teknologi digital terhadap produktivitas mahasiswa.",
+
+    "Metode penelitian":
+      "Metode penelitian...",
+
+    "Desain penelitian":
+      "Desain penelitian...",
+
+    "Populasi dan sampel/informan":
+      "Populasi dan sampel...",
+
+    "Teknik sampling":
+      "Teknik sampling...",
+
+    "Teknik pengumpulan data":
+      "Teknik pengumpulan data...",
+
+    "Instrumen penelitian":
+      "Instrumen penelitian...",
+
+    "Validitas dan reliabilitas":
+      "Validitas dan reliabilitas...",
+
+    "Teknik analisis data":
+      "Teknik analisis data...",
+
+    "Hasil penelitian":
+      "Hasil penelitian...",
+
+    "Pembahasan":
+      "Pembahasan...",
+
+    "Kesimpulan":
+      "Kesimpulan...",
+
+    "Saran":
+      "Saran...",
+
+    "Daftar pustaka":
+      "Daftar pustaka...",
+
+    "Tabel":
+      "Tabel penelitian...",
+
+    "Gambar":
+      "Gambar penelitian...",
+
+    "Lampiran":
+      "Lampiran penelitian..."
+  }
+};
+
+
+/* =========================================================
+   26. MENJALANKAN SISTEM
+   ========================================================= */
+
+const hasilAudit = runPembimbingSkripsi(
+  contohSkripsi
+);
+
+console.log(
+  JSON.stringify(
+    hasilAudit,
+    null,
+    2
+  )
+);
+
+
+/* =========================================================
+   27. API SEDERHANA
+   ========================================================= */
+
+/**
+ * Fungsi ini dapat digunakan jika sistem nantinya
+ * dihubungkan dengan aplikasi web/API.
+ */
+
+function analyzeThesis(document) {
+  return runPembimbingSkripsi({
+    document
+  });
+}
+
+
+/**
+ * Fungsi khusus untuk mendapatkan temuan
+ * berdasarkan kategori.
+ */
+
+function getFindingsByCategory(result, category) {
+  if (!result || !result.seluruhTemuan) {
+    return [];
+  }
+
+  return result.seluruhTemuan.filter(
+    (finding) =>
+      finding.kategori === category
+  );
+}
+
+
+/**
+ * Fungsi khusus untuk mendapatkan temuan
+ * berdasarkan prioritas.
+ */
+
+function getFindingsByPriority(result, priority) {
+  if (!result || !result.seluruhTemuan) {
+    return [];
+  }
+
+  return result.seluruhTemuan.filter(
+    (finding) =>
+      finding.tingkatPrioritas === priority
+  );
+}
+
+
+/**
+ * Fungsi untuk mendapatkan revisi wajib.
+ */
+
+function getMandatoryRevisions(result) {
+  if (!result || !result.revisiWajib) {
+    return [];
+  }
+
+  return result.revisiWajib;
+}
+
+
+/**
+ * Fungsi untuk mendapatkan status kesiapan.
+ */
+
+function getReadiness(result) {
+  return result?.kesiapanSkripsi || {
+    level: "Belum dapat dinilai",
+    alasan: "Hasil audit belum tersedia."
+  };
+}
+
+
+/* =========================================================
+   28. EKSPOR MODULE
+   ========================================================= */
+
+export {
+  SKILL_CONFIG,
+
+  normalizeText,
+  isEmpty,
+  containsText,
+  getSection,
+
+  createFinding,
+  validateInput,
+
+  checkDataAvailability,
+  checkTitle,
+  checkResearchQuestions,
+  checkLogicChain,
+  checkMethodology,
+  checkResults,
+  checkDiscussion,
+  checkConclusion,
+  checkReferences,
+  checkAcademicLanguage,
+  checkPlagiarism,
+  checkFormat,
+  checkConsistency,
+
+  sortFindingsByPriority,
+  calculateCompleteness,
+  assessReadiness,
+  generateSummary,
+  generateSupervisorRecommendations,
+
+  auditSkripsi,
+  createRevisionPlan,
+  formatAuditReport,
+  runPembimbingSkripsi,
+
+  analyzeThesis,
+  getFindingsByCategory,
+  getFindingsByPriority,
+  getMandatoryRevisions,
+  getReadiness
+};
