@@ -1,4 +1,4 @@
-# 🎓 Pembimbing Skripsi
+# 🎓 Pembimbing Pendidikan
 
 > AI Skill untuk membantu mahasiswa dan peneliti memahami, mengevaluasi, dan mengembangkan penelitian secara kritis dan sistematis.
 
